@@ -1,0 +1,18 @@
+( set -C; cat > .gitignore <<'EOF'
+# Configuración local y secretos
+.env
+.env.*
+!.env.example
+auth.json
+*.pem
+*.key
+
+# Dependencias
+vendor/
+node_modules/
+
+# Archivos temporales
+*.log
+.DS_Store
+Thumbs.db
+)
