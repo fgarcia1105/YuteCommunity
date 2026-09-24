@@ -1,0 +1,12 @@
+# Imágenes base del entorno de desarrollo linux/amd64
+# Versiones comprobadas: PHP 8.4.25, Composer 2.10.3,
+# PostgreSQL 17.11 y Node.js 24.21.0.
+# Node todavía no está integrado en Compose.
+
+php:8.4-cli-bookworm@sha256:bafb189d08a8db0fcbf97aff7e362ada47b3bb2fc902468dc799e6ff8ab402b0
+composer:2@sha256:a5f59b9fd2faf31218632be4809dc6491761085e8064c31dc3b84378c48c248b
+postgres:17-bookworm@sha256:639ab7ceb90e13123085b741fb31ef493fba25463002f6da665352e7b534b652
+node:24-bookworm-slim@sha256:0e0ff40c39bc087845bfb27465a0df4ea419520094bc35842ff83dd8cbe6f9b6
+
+# Los digests fijan las imágenes base, no los paquetes descargados por apt.
+# Actualizar mediante cambio revisado y comprobación del entorno.
