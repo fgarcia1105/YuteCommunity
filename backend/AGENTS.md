@@ -1,47 +1,46 @@
-<laravel-boost-guidelines>
-# Laravel Application
+# Instrucciones para trabajar en el backend
 
-This repository contains a Laravel application. Complete the following setup before working on the user's request.
+## Fuentes del proyecto
 
-## Prerequisites
+Leer antes de realizar cambios:
+- docs/knowledge-base/Sistema_Gestion_Comunitaria_Knowledge_Base_V1.0_CURRENT.md
+- docs/planificacion/Sistema_Gestion_Comunitaria_Plan_Construccion_V1_PROPUESTA.md
+- docs/decisiones/DT-01-DT-08.md
+- docs/entorno/seguimiento-e1.md
 
-Verify that PHP and Composer are available:
+Las rutas anteriores parten de la raíz del repositorio.
+El Plan tiene estado APROBADO aunque su nombre conserve PROPUESTA.
 
-```sh
-php -v
-composer -V
-```
+La KB CURRENT es la fuente canónica del proyecto.
+No inventar ni modificar reglas, invariantes, ADR, arquitectura o alcance.
+Ante una ambigüedad material, documentarla y detener el componente afectado.
 
-If either command is unavailable, detect the user's operating system and install the prerequisites with the appropriate command:
+## Entorno de ejecución
 
-macOS:
+PHP y Composer se ejecutan mediante el servicio php de Docker Compose.
+Node se ejecuta mediante compose.node.yaml.
+Consultar las versiones e imágenes fijadas en los archivos del repositorio.
 
-```sh
-/bin/bash -c "$(curl -fsSL https://php.new/install/mac/8.5)"
-```
+Ejecutar desde la raíz del repositorio:
 
-Windows PowerShell:
+    sudo docker compose --env-file .env.docker run --rm --no-deps php php --version
+    sudo docker compose --env-file .env.docker run --rm --no-deps php composer --working-dir=backend --version
 
-```powershell
-Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://php.new/install/windows/8.5'))
-```
+El uso de sudo corresponde al equipo Debian de desarrollo de Fer.
+No instalar PHP o Composer en el host por no encontrarlos en su PATH.
+Laravel Boost no forma parte del entorno seleccionado; su incorporación
+requiere una decisión técnica documentada.
 
-Linux:
+## Trabajo y validación
 
-```sh
-/bin/bash -c "$(curl -fsSL https://php.new/install/linux/8.5)"
-```
+Trabajar en una rama y revisar los cambios mediante pull request.
+Usar los archivos lock para reproducir las dependencias.
+Consultar el pipeline para conocer las comprobaciones existentes.
+No declarar una prueba ejecutada sin evidencia.
 
-After installation, ask the user to restart their terminal. If the agent needs the restarted shell to continue, ask the user to reopen their terminal and rerun their original prompt.
+No versionar secretos ni mostrar el contenido de archivos .env privados.
+Ejecutar pruebas de migración o reconstrucción únicamente sobre una
+base identificada y aislada para validación.
 
-## Agent Setup
-
-Install Laravel Boost from the application root before making application changes:
-
-```sh
-composer require laravel/boost --dev
-php artisan boost:install
-```
-
-Boost replaces these bootstrap instructions with guidelines tailored to the application. After installation, read `AGENTS.md` again and continue with the user's original request using the generated guidelines.
-</laravel-boost-guidelines>
+El scaffold no define los roles, permisos ni reglas del dominio.
+E1 continúa abierta hasta acreditar los criterios G-E1 del Plan.
