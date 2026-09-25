@@ -1,0 +1,40 @@
+name: yutecommunity-dev
+
+services:
+  php:
+    build:
+      context: ./docker/php
+    image: yutecommunity-php:dev
+    user: "${LOCAL_UID:?Falta LOCAL_UID}:${LOCAL_GID:?Falta LOCAL_GID}"
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html
+    environment:
+      COMPOSER_HOME: /tmp/composer
+      DB_CONNECTION: pgsql
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_DATABASE: yutecommunity_dev
+      DB_USERNAME: yute_dev
+      DB_PASSWORD: "${POSTGRES_PASSWORD:?Falta POSTGRES_PASSWORD}"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:17-bookworm@sha256:639ab7ceb90e13123085b741fb31ef493fba25463002f6da665352e7b534b652
+    environment:
+      POSTGRES_DB: yutecommunity_dev
+      POSTGRES_USER: yute_dev
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:?Falta POSTGRES_PASSWORD}"
+    volumes:
+      - postgres_dev:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+volumes:
+  postgres_dev:

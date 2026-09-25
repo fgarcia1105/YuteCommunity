@@ -1,0 +1,10 @@
+services:
+  node:
+    image: node:24-bookworm-slim@sha256:0e0ff40c39bc087845bfb27465a0df4ea419520094bc35842ff83dd8cbe6f9b6
+    user: "${LOCAL_UID:?Falta LOCAL_UID}:${LOCAL_GID:?Falta LOCAL_GID}"
+    working_dir: /workspace/backend
+    volumes:
+      - .:/workspace
+    environment:
+      npm_config_cache: /tmp/npm-cache
+    command: ["node", "--version"]
