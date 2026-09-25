@@ -1,0 +1,91 @@
+name: CI inicial
+
+on:
+  push:
+    branches:
+      - main
+      - chore/preparacion-entorno
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validar:
+    name: Validar backend y compilar Web
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Obtener el repositorio
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Preparar configuración temporal de CI
+        run: |
+          umask 077
+          printf 'LOCAL_UID=%s\nLOCAL_GID=%s\nPOSTGRES_PASSWORD=ci-unused\n' \
+            "$(id -u)" "$(id -g)" > .env.docker
+          cp backend/.env.example backend/.env
+
+      - name: Validar Compose y construir PHP
+        run: |
+          docker compose --env-file .env.docker \
+            -f compose.yaml -f compose.node.yaml config --quiet
+          docker compose --env-file .env.docker build php
+
+      - name: Instalar dependencias PHP bloqueadas
+        run: |
+          docker compose --env-file .env.docker run --rm --no-deps php \
+            composer --working-dir=backend install \
+            --no-interaction --prefer-dist --no-scripts
+
+      - name: Validar Composer y plataforma
+        run: |
+          docker compose --env-file .env.docker run --rm --no-deps php \
+            composer --working-dir=backend validate --strict
+          docker compose --env-file .env.docker run --rm --no-deps php \
+            composer --working-dir=backend check-platform-reqs
+
+      - name: Inicializar Laravel para la comprobación
+        run: |
+          docker compose --env-file .env.docker run --rm --no-deps php \
+            php backend/artisan package:discover
+          docker compose --env-file .env.docker run --rm --no-deps php \
+            php backend/artisan key:generate
+
+      - name: Instalar dependencias Web bloqueadas
+        run: |
+          docker compose --env-file .env.docker \
+            -f compose.yaml -f compose.node.yaml \
+            run --rm --no-deps node npm ci --ignore-scripts
+
+      - name: Compilar recursos Web
+        run: |
+          docker compose --env-file .env.docker \
+            -f compose.yaml -f compose.node.yaml \
+            run --rm --no-deps node npm run build
+
+      - name: Comprobar arranque HTTP de Laravel
+        run: |
+          docker compose --env-file .env.docker run --rm --no-deps \
+            -w /var/www/html/backend \
+            -e APP_ENV=testing \
+            -e DB_CONNECTION=sqlite \
+            -e DB_DATABASE=:memory: \
+            -e DB_URL= \
+            -e SESSION_DRIVER=array \
+            -e CACHE_STORE=array \
+            -e QUEUE_CONNECTION=sync \
+            php php vendor/bin/phpunit tests/Feature/ExampleTest.php
